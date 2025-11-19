@@ -3,58 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HapticShield | Sistema VMB</title>
+    <title>HapticShield | Simulador VMB</title>
     <style>
-        /* --- ESTÉTICA ENGENHARIA HARDCORE --- */
-        :root { --neon: #0f0; --warn: #ff0; --danger: #f00; --bg: #050505; }
-        body { margin: 0; overflow: hidden; background: var(--bg); font-family: 'Courier New', Courier, monospace; user-select: none; -webkit-touch-callout: none; }
+        /* --- DESIGN SYSTEM: INDUSTRIAL HAZARD --- */
+        :root { --neon: #0f0; --warn: #ff0; --danger: #f00; --bg: #080808; }
+        body { margin: 0; overflow: hidden; background: var(--bg); font-family: 'Courier New', monospace; user-select: none; -webkit-touch-callout: none; color: #fff; }
 
-        /* CAMADA DE VÍDEO (RA) */
-        #cam-feed { position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; opacity: 0.5; filter: grayscale(100%) contrast(1.2); }
+        /* CAMADA DE RA */
+        #cam-feed { position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; opacity: 0.4; filter: grayscale(100%) contrast(1.3); }
         
-        /* TELAS (OVERLAYS) */
-        .screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.95); transition: opacity 0.5s; padding: 20px; box-sizing: border-box; text-align: center; }
+        /* INTERFACES */
+        .screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.92); transition: opacity 0.3s; padding: 15px; box-sizing: border-box; text-align: center; }
         .hidden { opacity: 0; pointer-events: none; }
 
-        /* HUD PRINCIPAL */
+        /* HUD DE OPERAÇÃO */
         #hud { justify-content: space-between; background: transparent; padding: 10px; }
         
-        /* ELEMENTOS DE UI */
-        h1 { color: var(--neon); margin: 0 0 10px 0; text-shadow: 0 0 10px var(--neon); letter-spacing: 2px; }
-        .box { border: 1px solid #444; background: rgba(255,255,255,0.05); padding: 15px; width: 100%; max-width: 350px; margin-bottom: 20px; text-align: left; }
-        ul { padding-left: 20px; color: #aaa; font-size: 0.85rem; line-height: 1.6; }
-        li { margin-bottom: 5px; }
+        /* COMPONENTES VISUAIS */
+        h1 { color: var(--neon); margin: 0 0 10px 0; text-shadow: 0 0 15px var(--neon); letter-spacing: 1px; font-size: 2rem; }
+        .box { border: 1px solid #444; background: rgba(255,255,255,0.05); padding: 15px; width: 100%; margin-bottom: 15px; text-align: left; border-left: 4px solid var(--neon); }
+        
+        /* CLOCK DO TURNO (NOVIDADE) */
+        .shift-clock { font-size: 3rem; font-weight: bold; color: #fff; text-shadow: 0 0 10px #fff; margin: 10px 0; font-variant-numeric: tabular-nums; }
+        .clock-label { font-size: 0.7rem; color: #aaa; letter-spacing: 2px; text-transform: uppercase; }
 
         /* BOTÕES */
-        .btn-start { background: var(--neon); color: #000; border: none; padding: 15px 40px; font-weight: 900; font-size: 1.2rem; cursor: pointer; box-shadow: 0 0 20px rgba(0,255,0,0.4); clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%); }
-        .btn-reset { background: #333; color: #fff; border: 1px solid #fff; padding: 10px 30px; margin-top: 20px; cursor: pointer; }
-
-        /* BOTÃO DE OPERAÇÃO (O GATILHO) */
-        .trigger-area { padding-bottom: 50px; display: flex; flex-direction: column; align-items: center; }
+        .btn-action { background: var(--neon); color: #000; border: none; padding: 15px 30px; font-weight: 900; font-size: 1.1rem; cursor: pointer; clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%); width: 100%; max-width: 300px; }
+        .btn-action:active { transform: scale(0.98); }
+        
+        /* GATILHO "DEAD MAN SWITCH" */
+        .trigger-area { padding-bottom: 40px; display: flex; flex-direction: column; align-items: center; width: 100%; }
         #trigger-btn {
-            width: 110px; height: 110px; border-radius: 50%;
+            width: 120px; height: 120px; border-radius: 50%;
             border: 4px solid var(--neon); color: var(--neon);
-            background: rgba(0,20,0,0.6);
-            display: flex; align-items: center; justify-content: center;
+            background: rgba(0,20,0,0.7);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
             font-weight: bold; font-size: 0.9rem; text-align: center;
-            box-shadow: 0 0 15px var(--neon); transition: all 0.1s;
-            user-select: none; -webkit-user-select: none;
+            box-shadow: 0 0 20px var(--neon); transition: all 0.1s;
         }
-        #trigger-btn.active { background: var(--danger); border-color: var(--danger); color: #000; transform: scale(0.95); box-shadow: 0 0 40px var(--danger); }
+        #trigger-btn.active { background: var(--danger); border-color: var(--danger); color: #000; transform: scale(0.95); box-shadow: 0 0 50px var(--danger); }
 
-        /* DADOS NO HUD */
-        .data-panel { width: 100%; background: rgba(0,0,0,0.7); border-top: 2px solid var(--neon); padding: 10px; }
-        .metric { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 1.1rem; color: #fff; }
+        /* PAINEL DE DADOS */
+        .data-panel { width: 100%; background: rgba(0,0,0,0.8); border-top: 2px solid var(--neon); padding: 15px; margin-bottom: 10px; }
+        .metric-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 1.1rem; border-bottom: 1px solid #333; padding-bottom: 5px; }
         .label { font-size: 0.7rem; color: #888; }
         
-        /* BARRA DE VIDA */
-        .health-container { height: 30px; background: #222; border: 2px solid #555; position: relative; margin-top: 10px; transform: skewX(-15deg); }
-        .health-bar { height: 100%; width: 100%; background: linear-gradient(90deg, var(--neon), var(--warn)); transition: width 0.1s linear; }
-        .health-text { position: absolute; top: 4px; left: 0; width: 100%; text-align: center; color: #000; font-weight: bold; font-size: 0.8rem; transform: skewX(15deg); }
+        /* BARRA DE INTEGRIDADE */
+        .hp-container { height: 20px; background: #222; border: 1px solid #555; position: relative; margin-top: 10px; }
+        .hp-bar { height: 100%; width: 100%; background: linear-gradient(90deg, var(--neon), var(--neon)); transition: width 0.1s linear; }
+        
+        /* FAIL SCREEN */
+        #fail-screen { background: rgba(20,0,0,0.98); border: 5px solid var(--danger); }
+        .fail-title { color: var(--danger); font-size: 3rem; transform: rotate(-5deg); text-shadow: 0 0 20px red; border: 4px solid red; padding: 10px; display: inline-block; margin-bottom: 30px; }
 
-        /* ANIMAÇÃO DE PERIGO */
-        @keyframes flash-red { 0% {box-shadow: inset 0 0 0 red;} 50% {box-shadow: inset 0 0 50px red;} 100% {box-shadow: inset 0 0 0 red;} }
-        .critical { animation: flash-red 0.5s infinite; }
     </style>
 </head>
 <body>
@@ -63,172 +64,224 @@
 
     <div id="start-screen" class="screen">
         <h1>HAPTIC<span style="color:#fff">SHIELD</span></h1>
-        <p style="color:#888; margin-bottom:20px; font-size:0.8rem;">SISTEMA DE TREINAMENTO VMB v2.1</p>
+        <p style="color:#888; margin-bottom:20px;">SIMULADOR DE DOSE VIBRATÓRIA</p>
         
         <div class="box">
-            <strong style="color:#fff; display:block; border-bottom:1px solid #555; padding-bottom:5px; margin-bottom:10px;">PRÉ-REQUISITOS OBRIGATÓRIOS:</strong>
-            <ul>
-                <li>🔊 Ative o <strong>Som/Vibração</strong> do celular.</li>
-                <li>🔋 Desligue <strong>"Economia de Bateria"</strong>.</li>
-                <li>📳 Ative <strong>"Feedback Tátil"</strong> nas config.</li>
-                <li>⚠️ <strong>iPhone (iOS):</strong> Apenas Visual (Sem Vibração).</li>
+            <strong>PRÉ-VOO:</strong>
+            <ul style="padding-left: 20px; color: #aaa; font-size: 0.85rem; text-align: left;">
+                <li>🔊 Som & Vibração: <strong>ATIVOS</strong></li>
+                <li>🔋 Modo Economia: <strong>OFF</strong></li>
+                <li>⏱️ Escala Temporal: <strong>1s = 2min</strong></li>
+                <li>⚠️ Ferramenta: <strong>19.0 m/s²</strong></li>
             </ul>
         </div>
 
-        <button class="btn-start" onclick="initSystem()">INICIAR SISTEMA</button>
+        <button class="btn-action" onclick="initSystem()">INICIAR SISTEMA</button>
+        <p style="font-size:0.6rem; color:#555; margin-top:10px;">v3.0 | CALIBRADO ISO-5349</p>
     </div>
 
     <div id="hud" class="screen hidden">
-        <div class="data-panel" style="background:transparent; border:none; text-align:left;">
-            <div style="color:var(--neon); font-size:0.8rem;">● SISTEMA ONLINE</div>
-            <div style="color:#aaa; font-size:0.6rem;">API: ISO-5349-1 INTEGRATION</div>
-        </div>
-
-        <div style="width:100%;">
+        <div style="width: 100%;">
+            <div class="clock-label">TEMPO DE TURNO SIMULADO</div>
+            <div class="shift-clock" id="clock-display">00:00</div>
+            
             <div class="data-panel">
-                <div class="metric">
-                    <span class="label">ACELERAÇÃO (RMS)</span>
-                    <span id="val-acc">0.0 m/s²</span>
+                <div class="metric-row">
+                    <span class="label">VIBRAÇÃO (a_hv)</span>
+                    <span id="val-acc" style="color:var(--warn)">0.0 m/s²</span>
                 </div>
-                <div class="metric">
-                    <span class="label">DOSE A(8) PROJ.</span>
+                <div class="metric-row">
+                    <span class="label">DOSE ACUMULADA A(8)</span>
                     <span id="val-dose">0.00</span>
                 </div>
                 
-                <div class="health-container">
-                    <div class="health-bar" id="hp-bar"></div>
-                    <div class="health-text">INTEGRIDADE VASCULAR</div>
+                <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.7rem;">
+                    <span>SAÚDE VASCULAR</span>
+                    <span id="hp-txt">100%</span>
+                </div>
+                <div class="hp-container">
+                    <div class="hp-bar" id="hp-bar"></div>
                 </div>
             </div>
         </div>
 
         <div class="trigger-area">
             <div id="trigger-btn">SEGURE<br>PARA<br>OPERAR</div>
-            <div style="margin-top:10px; font-size:0.7rem; color:#666;">MANTENHA PRESSIONADO</div>
+            <div style="margin-top:10px; font-size:0.7rem; color:#aaa;">SIMULAÇÃO ACELERADA (120x)</div>
         </div>
     </div>
 
-    <div id="fail-screen" class="screen hidden" style="background:rgba(20,0,0,0.98);">
-        <h1 style="color:var(--danger); border:3px solid var(--danger); padding:10px; transform:rotate(-3deg);">FALHA CRÍTICA</h1>
-        <h2 style="color:#fff; margin-top:20px;">SÍNDROME DE RAYNAUD</h2>
-        <p style="color:#aaa;">DANO TECIDUAL IRREVERSÍVEL DETECTADO</p>
+    <div id="fail-screen" class="screen hidden">
+        <div class="fail-title">FALHA</div>
+        <h2 style="color:#fff; margin:0;">LIMITE ISO EXCEDIDO</h2>
+        <p style="color:#aaa; margin-bottom:30px;">RISCO IMEDIATO DE NECROSE</p>
         
-        <div class="box" style="text-align:center; border-color:var(--danger);">
-            <p style="color:#fff; font-size:1.5rem;" id="final-dose">0.00 m/s²</p>
-            <p style="color:var(--danger); font-size:0.8rem;">LIMITE ISO-5349 EXCEDIDO</p>
+        <div class="box" style="border-color:var(--danger); border-left:4px solid var(--danger);">
+            <p style="margin:5px 0;">⏱️ Tempo de Turno: <strong id="final-time" style="color:#fff">00:00</strong></p>
+            <p style="margin:5px 0;">📈 Dose Final A(8): <strong id="final-dose" style="color:var(--danger)">5.00 m/s²</strong></p>
         </div>
 
-        <button class="btn-reset" onclick="location.reload()">REINICIAR SIMULAÇÃO</button>
+        <button class="btn-action" style="background:#333; border:1px solid #fff; color:#fff;" onclick="resetSimulation()">REINICIAR SIMULAÇÃO</button>
     </div>
 
     <script>
-        // --- LÓGICA DO SISTEMA ---
-        let hp = 100;
-        let dose = 0;
+        // --- CONFIGURAÇÃO DE ENGENHARIA ---
+        const TOOL_ACCELERATION = 19.0; // m/s² (Martelete Pesado)
+        const ISO_LIMIT = 5.0;          // Limite de Tolerância A(8)
+        const TIME_SCALE = 120;         // 1 seg real = 120 seg simulados (2 min)
+        const REFRESH_RATE = 100;       // ms (Atualização da tela)
+
+        // Variáveis de Estado
+        let simSeconds = 0;    // Segundos simulados acumulados
+        let dose = 0;          // A(8) atual
         let isRunning = false;
         
-        // Referências
-        const startScreen = document.getElementById('start-screen');
-        const hud = document.getElementById('hud');
-        const failScreen = document.getElementById('fail-screen');
-        const btn = document.getElementById('trigger-btn');
-        const hpBar = document.getElementById('hp-bar');
-        
-        // Timers
-        let loopInterval;
-        let vibrateInterval;
+        // Referências DOM
+        const els = {
+            start: document.getElementById('start-screen'),
+            hud: document.getElementById('hud'),
+            fail: document.getElementById('fail-screen'),
+            btn: document.getElementById('trigger-btn'),
+            acc: document.getElementById('val-acc'),
+            dose: document.getElementById('val-dose'),
+            clock: document.getElementById('clock-display'),
+            hpBar: document.getElementById('hp-bar'),
+            hpTxt: document.getElementById('hp-txt'),
+            cam: document.getElementById('cam-feed')
+        };
 
-        // 1. INICIALIZAÇÃO (Câmera + UX)
+        // Timers
+        let loopTimer;
+        let vibeTimer;
+
+        // 1. INICIALIZAÇÃO
         async function initSystem() {
-            // Feedback tátil inicial para testar se o navegador deixa
-            if(navigator.vibrate) navigator.vibrate(200);
+            // Teste silencioso de vibração
+            if(navigator.vibrate) navigator.vibrate(50);
             
-            startScreen.classList.add('hidden');
-            hud.classList.remove('hidden');
+            els.start.classList.add('hidden');
+            els.hud.classList.remove('hidden');
 
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-                document.getElementById('cam-feed').srcObject = stream;
+                els.cam.srcObject = stream;
             } catch (e) {
-                console.log("Câmera não autorizada. Usando modo escuro.");
-                document.getElementById('cam-feed').style.display = 'none';
+                els.cam.style.display = 'none'; // Modo sem câmera
             }
         }
 
-        // 2. SIMULAÇÃO FÍSICA
+        // 2. LOOP DE FÍSICA
         function startTool(e) {
-            if(e) e.preventDefault(); // Evita seleção de texto/menu
-            if(hp <= 0) return;
+            if(e) e.preventDefault();
+            if(dose >= ISO_LIMIT) return;
 
             isRunning = true;
-            btn.classList.add('active');
-            btn.innerHTML = "VIBRAÇÃO<br>ATIVA";
+            els.btn.classList.add('active');
+            els.btn.innerHTML = "VIBRAÇÃO<br>MAXIMA";
 
-            // Padrão de Vibração (Britadeira: 100ms ON, 50ms OFF)
+            // Padrão Agressivo: 400ms ON, 30ms OFF (Quase contínuo)
             if(navigator.vibrate) {
-                navigator.vibrate([100, 50, 100, 50, 100, 50, 100, 50]); 
-                vibrateInterval = setInterval(() => {
-                    if(isRunning) navigator.vibrate([100, 50]);
-                }, 150);
+                navigator.vibrate([400, 30, 400, 30]); 
+                vibeTimer = setInterval(() => {
+                    if(isRunning) navigator.vibrate([400, 30]);
+                }, 430);
             }
 
-            // Loop de Cálculo (60fps aprox)
-            loopInterval = setInterval(() => {
-                // Gerar dados ruidosos (15 a 22 m/s²)
-                let acc = 15 + Math.random() * 7;
-                document.getElementById('val-acc').innerText = acc.toFixed(1) + " m/s²";
+            // Loop de Cálculo
+            loopTimer = setInterval(() => {
+                // 1. Avançar Tempo Simulado
+                // A cada 100ms reais, avançamos (0.1 * 120) = 12 segundos simulados
+                let deltaSim = (REFRESH_RATE / 1000) * TIME_SCALE;
+                simSeconds += deltaSim;
 
-                // Acumular Dose (Acelerado para demo)
-                dose += 0.08;
-                document.getElementById('val-dose').innerText = dose.toFixed(2);
+                // 2. Atualizar Relógio (HH:MM)
+                let hours = Math.floor(simSeconds / 3600);
+                let mins = Math.floor((simSeconds % 3600) / 60);
+                els.clock.innerText = `${hours.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}`;
 
-                // Dano Vascular
-                hp -= 0.6; 
-                hpBar.style.width = hp + "%";
+                // 3. Calcular A(8) - Fórmula da ISO 5349
+                // A(8) = a_hv * sqrt(T_exp / 8h)
+                // T_exp em horas
+                let t_hours = simSeconds / 3600;
+                dose = TOOL_ACCELERATION * Math.sqrt(t_hours / 8);
+                
+                // 4. Atualizar UI
+                // Variação aleatória realista no sensor (18.5 a 19.5)
+                let noise = (Math.random() - 0.5);
+                els.acc.innerText = (TOOL_ACCELERATION + noise).toFixed(1) + " m/s²";
+                els.dose.innerText = dose.toFixed(2);
 
-                // Mudança de Estados Visuais
-                if(hp < 50) hpBar.style.background = "var(--warn)";
-                if(hp < 25) {
-                    hpBar.style.background = "var(--danger)";
-                    hud.classList.add('critical'); // Piscar vermelho
+                // 5. Calcular Saúde Vascular (Inverso da Dose)
+                // 0.0 -> 100%, 5.0 -> 0%
+                let hpPercent = Math.max(0, 100 - (dose / ISO_LIMIT) * 100);
+                els.hpBar.style.width = hpPercent + "%";
+                els.hpTxt.innerText = Math.floor(hpPercent) + "%";
+
+                // Cores Críticas
+                if(hpPercent < 30) {
+                    els.hpBar.style.background = "var(--danger)";
+                    els.hud.style.boxShadow = "inset 0 0 50px red"; // Alerta visual
                 }
 
-                // Game Over
-                if(hp <= 0) triggerFailure();
+                // 6. Verificação de Falha
+                if(dose >= ISO_LIMIT) {
+                    triggerFail();
+                }
 
-            }, 100);
+            }, REFRESH_RATE);
         }
 
         function stopTool(e) {
             if(e) e.preventDefault();
             isRunning = false;
-            btn.classList.remove('active');
-            btn.innerHTML = "SEGURE<br>PARA<br>OPERAR";
-            hud.classList.remove('critical');
-            
-            document.getElementById('val-acc').innerText = "0.0 m/s²";
+            els.btn.classList.remove('active');
+            els.btn.innerHTML = "SEGURE<br>PARA<br>OPERAR";
+            els.hud.style.boxShadow = "none";
+            els.acc.innerText = "0.0 m/s²";
 
-            // Parar tudo
-            clearInterval(loopInterval);
-            clearInterval(vibrateInterval);
+            clearInterval(loopTimer);
+            clearInterval(vibeTimer);
             if(navigator.vibrate) navigator.vibrate(0);
         }
 
-        function triggerFailure() {
+        // 3. ESTADOS FINAIS E RESET
+        function triggerFail() {
             stopTool();
-            document.getElementById('final-dose').innerText = "A(8) Final: " + dose.toFixed(2);
-            failScreen.classList.remove('hidden');
-            hud.classList.add('hidden');
-            if(navigator.vibrate) navigator.vibrate([500, 100, 500]); // Vibração de erro longa
+            if(navigator.vibrate) navigator.vibrate([1000]); // Vibração longa de erro
+            
+            // Preencher Relatório
+            document.getElementById('final-time').innerText = els.clock.innerText;
+            document.getElementById('final-dose').innerText = dose.toFixed(2) + " m/s²";
+            
+            // Trocar Tela
+            els.hud.classList.add('hidden');
+            els.fail.classList.remove('hidden');
         }
 
-        // 3. BINDING DE EVENTOS (Touch e Mouse)
-        btn.addEventListener('mousedown', startTool);
-        btn.addEventListener('mouseup', stopTool);
-        btn.addEventListener('mouseleave', stopTool);
-        
-        btn.addEventListener('touchstart', startTool, {passive: false});
-        btn.addEventListener('touchend', stopTool, {passive: false});
+        function resetSimulation() {
+            // Resetar Variáveis
+            simSeconds = 0;
+            dose = 0;
+            
+            // Resetar UI
+            els.clock.innerText = "00:00";
+            els.dose.innerText = "0.00";
+            els.hpBar.style.width = "100%";
+            els.hpBar.style.background = "linear-gradient(90deg, var(--neon), var(--neon))";
+            els.hpTxt.innerText = "100%";
+            
+            // Trocar Tela
+            els.fail.classList.add('hidden');
+            els.hud.classList.remove('hidden');
+        }
+
+        // 4. EVENT LISTENERS
+        const b = els.btn;
+        b.addEventListener('mousedown', startTool);
+        b.addEventListener('mouseup', stopTool);
+        b.addEventListener('mouseleave', stopTool);
+        b.addEventListener('touchstart', startTool, {passive: false});
+        b.addEventListener('touchend', stopTool, {passive: false});
 
     </script>
 </body>
