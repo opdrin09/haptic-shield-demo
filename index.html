@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HapticShield | Monitoramento VMB</title>
+    <style>
+        /* --- ESTÉTICA CYBERPUNK INDUSTRIAL --- */
+        :root { --neon-green: #0f0; --neon-red: #f00; --neon-yellow: #ff0; --bg: #000; }
+        body { margin: 0; overflow: hidden; background-color: var(--bg); font-family: 'Courier New', Courier, monospace; color: var(--neon-green); user-select: none; -webkit-user-select: none; }
+        
+        /* CAMERA FEED */
+        #camera-video { position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; opacity: 0.4; filter: grayscale(100%) contrast(1.2); }
+        
+        /* HUD OVERLAY */
+        #ui-layer { position: relative; z-index: 10; height: 100vh; display: flex; flex-direction: column; justify-content: space-between; padding: 15px; box-sizing: border-box; background: linear-gradient(180deg, rgba(0,20,0,0.8) 0%, rgba(0,0,0,0) 20%, rgba(0,0,0,0) 80%, rgba(0,20,0,0.9) 100%); }
+        
+        /* HEADER */
+        .header { display: flex; justify-content: space-between; border-bottom: 1px solid var(--neon-green); padding-bottom: 5px; }
+        .brand { font-weight: 900; letter-spacing: 2px; font-size: 1.2rem; }
+        .status { font-size: 0.8rem; animation: blink 1s infinite; }
+
+        /* METRICS */
+        .metrics-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px; text-align: center; }
+        .metric-box { border: 1px solid #333; background: rgba(0,0,0,0.5); padding: 5px; }
+        .metric-val { font-size: 1.5rem; font-weight: bold; color: #fff; }
+        .metric-label { font-size: 0.6rem; color: #aaa; }
+
+        /* GRAPH (Fake Real-time) */
+        .graph-container { height: 60px; border-left: 1px solid var(--neon-green); border-bottom: 1px solid var(--neon-green); margin: 10px 0; position: relative; overflow: hidden; opacity: 0.8; }
+        .graph-line { position: absolute; bottom: 0; right: 0; width: 100%; height: 2px; background: var(--neon-green); box-shadow: 0 0 5px var(--neon-green); }
+
+        /* HEALTH BAR (VASCULAR INTEGRITY) */
+        .integrity-section { margin: 20px 0; }
+        .bar-frame { height: 25px; border: 2px solid #555; background: #111; position: relative; transform: skewX(-10deg); }
+        .bar-fill { height: 100%; width: 100%; background: linear-gradient(90deg, var(--neon-green), var(--neon-yellow)); transition: width 0.2s, background 0.5s; }
+        .bar-text { position: absolute; top: 2px; left: 5px; font-size: 0.8rem; color: #000; font-weight: bold; z-index: 2; }
+
+        /* BUTTON */
+        .control-wrapper { display: flex; justify-content: center; padding-bottom: 30px; position: relative; }
+        #action-btn {
+            width: 90px; height: 90px; border-radius: 50%;
+            background: rgba(0, 255, 0, 0.1); border: 2px solid var(--neon-green);
+            color: var(--neon-green); font-weight: bold; display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem; text-align: center; cursor: pointer;
+            box-shadow: 0 0 10px var(--neon-green); transition: all 0.2s;
+        }
+        #action-btn.active { background: rgba(255, 0, 0, 0.3); border-color: var(--neon-red); color: var(--neon-red); box-shadow: 0 0 30px var(--neon-red); transform: scale(0.95); }
+
+        /* iOS WARNING */
+        #ios-warning { font-size: 0.6rem; color: #666; text-align: center; margin-bottom: 5px; display: none; }
+
+        /* SCREENS */
+        .screen-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; display: none; }
+        
+        /* START SCREEN */
+        #start-screen { display: flex; background: rgba(0,0,0,0.9); }
+        #report-screen { background: rgba(20,0,0,0.95); color: var(--neon-red); }
+
+        /* ANIMATIONS */
+        @keyframes blink { 0% {opacity:1} 50% {opacity:0.3} 100% {opacity:1} }
+        .hazard { color: var(--neon-red); border-color: var(--neon-red) !important; }
+    </style>
+</head>
+<body>
+
+    <video id="camera-video" autoplay playsinline muted></video>
+
+    <div id="start-screen" class="screen-overlay" style="display: flex;">
+        <h1 style="font-size: 2rem; margin-bottom: 0;">HAPTIC<span style="color:#fff">SHIELD</span></h1>
+        <p style="font-size: 0.8rem; color: #aaa; margin-bottom: 30px;">SISTEMA DE TREINAMENTO VMB v1.0</p>
+        
+        <div style="border: 1px solid var(--neon-green); padding: 15px; margin-bottom: 20px; width: 80%;">
+            <p>INSTRUÇÕES:</p>
+            <ul style="text-align: left; font-size: 0.8rem; list-style: none; padding: 0;">
+                <li>1. Aponte para o chão/ferramenta.</li>
+                <li>2. Segure o botão "OPERAR".</li>
+                <li>3. Mantenha a Saúde Vascular.</li>
+            </ul>
+        </div>
+        <button onclick="initSystem()" style="background: var(--neon-green); color: #000; border: none; padding: 15px 40px; font-weight: bold; font-size: 1.2rem;">INICIAR SISTEMA</button>
+        <p id="ios-badge" style="font-size: 0.7rem; color: #555; margin-top: 20px; display:none;">⚠️ MODO iOS (SEM HAPTICS) ATIVADO</p>
+    </div>
+
+    <div id="report-screen" class="screen-overlay">
+        <h1 style="font-size: 3rem; border: 4px solid var(--neon-red); padding: 10px; transform: rotate(-5deg);">FALHA CRÍTICA</h1>
+        <h2 style="color: #fff;">SÍNDROME DE RAYNAUD DETECTADA</h2>
+        
+        <div style="text-align: left; width: 100%; margin-top: 20px; border-top: 1px solid #555; padding-top: 20px;">
+            <p>TEMPO OPERAÇÃO: <span style="color:#fff" id="final-time">00:00</span></p>
+            <p>ACELERAÇÃO A(8): <span style="color:#fff" id="final-dose">0.0</span> m/s²</p>
+            <p>STATUS NORMA: <span style="color:var(--neon-red); font-weight:bold;">VIOLAÇÃO ISO 5349</span></p>
+        </div>
+        <button onclick="location.reload()" style="margin-top: 30px; background: #333; color: #fff; border: 1px solid #fff; padding: 10px 30px;">REINICIAR SIMULAÇÃO</button>
+    </div>
+
+    <div id="ui-layer">
+        <div>
+            <div class="header">
+                <div class="brand">HAPTIC<span style="color:#fff">SHIELD</span></div>
+                <div class="status">● REC</div>
+            </div>
+            
+            <div class="metrics-grid">
+                <div class="metric-box">
+                    <div class="metric-val" id="acc-val">0.0</div>
+                    <div class="metric-label">m/s² (RMS)</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-val" id="a8-val">0.0</div>
+                    <div class="metric-label">A(8) PROJ.</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-val" id="time-val">00:00</div>
+                    <div class="metric-label">TEMPO</div>
+                </div>
+            </div>
+
+            <div class="graph-container">
+                <canvas id="vib-canvas" width="300" height="60"></canvas>
+            </div>
+
+            <div class="integrity-section">
+                <div style="display: flex; justify-content: space-between; font-size: 0.7rem; margin-bottom: 2px;">
+                    <span>SAÚDE VASCULAR (PERFUSÃO)</span>
+                    <span id="hp-text">100%</span>
+                </div>
+                <div class="bar-frame">
+                    <div class="bar-text">MONITORAMENTO ATIVO</div>
+                    <div class="bar-fill" id="hp-bar"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-wrapper">
+            <div id="ios-warning">iOS: Feedback Visual Apenas</div>
+            <div id="action-btn">SEGURE<br>PARA<br>OPERAR</div>
+        </div>
+    </div>
+
+    <script>
+        // --- SISTEMA LÓGICO ---
+        let isRunning = false;
+        let startTime = 0;
+        let hp = 100;
+        let a8Accumulated = 0;
+        
+        // Configuração da "Ferramenta Virtual"
+        const TOOL_VIBRATION = 19.0; // m/s² (Martelete pesado)
+        const LIMIT_HP_DROP = 0.5;   // Dano por tick
+
+        // Elementos
+        const btn = document.getElementById('action-btn');
+        const hpBar = document.getElementById('hp-bar');
+        const accVal = document.getElementById('acc-val');
+        const a8Val = document.getElementById('a8-val');
+        const timeVal = document.getElementById('time-val');
+        const canvas = document.getElementById('vib-canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Detecção iOS
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        if(isIOS) {
+            document.getElementById('ios-badge').style.display = 'block';
+            document.getElementById('ios-warning').style.display = 'block';
+        }
+
+        // Inicialização
+        async function initSystem() {
+            document.getElementById('start-screen').style.display = 'none';
+            
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                document.getElementById('camera-video').srcObject = stream;
+            } catch (e) {
+                alert("Permissão de câmera negada. O app funcionará sem o fundo de realidade aumentada.");
+            }
+            
+            drawGraph();
+        }
+
+        // Loop Principal
+        let loopInterval;
+        let vibrationInterval;
+
+        function startOp(e) {
+            if(e) e.preventDefault(); // Prevenir menu de contexto no mobile
+            if(hp <= 0) return;
+
+            isRunning = true;
+            btn.classList.add('active');
+            btn.innerHTML = "OPERANDO";
+            
+            // Vibração (Loop manual para Android)
+            if(!isIOS && navigator.vibrate) {
+                navigator.vibrate([50, 30]); // Primeiro pulso
+                vibrationInterval = setInterval(() => {
+                    if(isRunning) navigator.vibrate([50, 30]); // Pulsos contínuos
+                }, 80);
+            }
+
+            // Loop de Dados
+            loopInterval = setInterval(() => {
+                // 1. Atualizar Tempo
+                startTime += 0.1;
+                let min = Math.floor(startTime / 60);
+                let sec = Math.floor(startTime % 60);
+                timeVal.innerText = `${min < 10 ? '0'+min : min}:${sec < 10 ? '0'+sec : sec}`;
+
+                // 2. Simular Aceleração (Ruído realista)
+                let currentAcc = TOOL_VIBRATION + (Math.random() * 4 - 2);
+                accVal.innerText = currentAcc.toFixed(1);
+
+                // 3. Calcular A(8) Projetado (Simplificado para demo)
+                // A(8) sobe rápido para assustar
+                a8Accumulated = currentAcc * Math.sqrt((startTime/3600) / 8) * 15; 
+                // Multiplicador x15 para "acelerar o tempo" da demo (1 min = várias horas)
+                a8Val.innerText = a8Accumulated.toFixed(2);
+
+                // 4. Dano Vascular
+                hp -= LIMIT_HP_DROP;
+                hpBar.style.width = hp + "%";
+                document.getElementById('hp-text').innerText = Math.floor(hp) + "%";
+
+                // Cores de Alerta
+                if(hp < 50) hpBar.style.background = "var(--neon-yellow)";
+                if(hp < 20) {
+                    hpBar.style.background = "var(--neon-red)";
+                    document.body.style.boxShadow = "inset 0 0 50px red";
+                }
+
+                // Game Over
+                if(hp <= 0) gameOver();
+
+            }, 100);
+        }
+
+        function stopOp(e) {
+            if(e) e.preventDefault();
+            isRunning = false;
+            btn.classList.remove('active');
+            btn.innerHTML = "SEGURE<br>PARA<br>OPERAR";
+            accVal.innerText = "0.0";
+            document.body.style.boxShadow = "none";
+            
+            clearInterval(loopInterval);
+            clearInterval(vibrationInterval);
+            if(navigator.vibrate) navigator.vibrate(0);
+        }
+
+        function gameOver() {
+            stopOp();
+            document.getElementById('final-time').innerText = timeVal.innerText;
+            document.getElementById('final-dose').innerText = a8Val.innerText;
+            document.getElementById('report-screen').style.display = 'flex';
+            // Som de erro (opcional)
+        }
+
+        // Input Events
+        btn.addEventListener('mousedown', startOp);
+        btn.addEventListener('mouseup', stopOp);
+        btn.addEventListener('mouseleave', stopOp);
+        btn.addEventListener('touchstart', startOp);
+        btn.addEventListener('touchend', stopOp);
+
+        // Gráfico Fake (Visualização de Onda)
+        function drawGraph() {
+            let width = canvas.width;
+            let height = canvas.height;
+            let data = new Array(50).fill(height/2);
+            
+            function animate() {
+                // Shift
+                data.shift();
+                // New value
+                if(isRunning) {
+                    data.push((height/2) + (Math.random() * 40 - 20));
+                } else {
+                    data.push(height/2);
+                }
+                
+                ctx.clearRect(0, 0, width, height);
+                ctx.beginPath();
+                ctx.strokeStyle = isRunning ? '#f00' : '#0f0';
+                ctx.lineWidth = 2;
+                
+                for(let i=0; i<data.length; i++) {
+                    let x = (i / data.length) * width;
+                    let y = data[i];
+                    if(i===0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+    </script>
+</body>
+</html>
