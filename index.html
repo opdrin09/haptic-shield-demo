@@ -1,168 +1,580 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HapticShield | UnB</title>
     <style>
-        /* --- DESIGN SYSTEM --- */
+        /* --- DESIGN SYSTEM v7.0 (HYBRID) --- */
         :root {
             --neon: #00ff41;
             --warn: #ffcc00;
             --danger: #ff3333;
-            --bg: #0a0a0a;
-            --panel: #111;
+            --bg: #111;
+            --panel: #1a1a1a;
             --border: #333;
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-        body { 
-            margin: 0; background: var(--bg); font-family: 'Courier New', Courier, monospace; 
-            color: #eee; overflow-x: hidden; 
+        body {
+            margin: 0;
+            background-color: var(--bg);
+            /* Fundo Padrão (Digital Twin) */
+            background-image: radial-gradient(#222 15%, transparent 16%), radial-gradient(#222 15%, transparent 16%);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+            font-family: 'Segoe UI', 'Courier New', monospace;
+            color: #eee;
+            overflow-x: hidden;
         }
 
         /* --- APRESENTAÇÃO --- */
-        #landing-page { padding: 20px; max-width: 800px; margin: 0 auto; padding-bottom: 120px; }
+        #landing-page {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            padding-bottom: 120px;
+        }
 
-        header { text-align: center; padding: 40px 0; border-bottom: 1px solid var(--border); margin-bottom: 30px; }
-        .logo { font-size: 2.5rem; font-weight: 900; letter-spacing: -2px; color: #fff; text-shadow: 0 0 15px var(--neon); }
-        .logo span { color: var(--neon); }
-        .sub { color: #888; font-size: 0.8rem; letter-spacing: 2px; margin-top: 5px; }
+        header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
 
-        h2 { border-left: 4px solid var(--neon); padding-left: 15px; margin-top: 40px; color: #fff; text-transform: uppercase; }
-        p { color: #aaa; line-height: 1.6; font-size: 0.95rem; margin-bottom: 20px; }
-        
-        .highlight { color: var(--neon); font-weight: bold; }
-        .danger-text { color: var(--danger); font-weight: bold; }
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 900;
+            letter-spacing: -2px;
+            color: #fff;
+            text-shadow: 0 0 15px var(--neon);
+        }
 
-        /* CARDS TUTORIAL */
-        .tutorial-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px; }
-        .step-card { background: var(--panel); border: 1px solid var(--border); padding: 15px; border-radius: 8px; position: relative; }
-        .step-num { position: absolute; top: -10px; left: -10px; background: var(--neon); color: #000; width: 25px; height: 25px; border-radius: 50%; font-weight: bold; display: flex; align-items: center; justify-content: center; }
-        .step-title { color: #fff; font-weight: bold; margin-bottom: 5px; display: block; }
-        .step-desc { font-size: 0.8rem; color: #888; }
+        .logo span {
+            color: var(--neon);
+        }
 
-        /* BOTÃO PRINCIPAL */
-        .cta-container { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.95); padding: 20px; text-align: center; border-top: 1px solid var(--neon); z-index: 100; }
+        h2 {
+            border-left: 4px solid var(--neon);
+            padding-left: 15px;
+            margin-top: 30px;
+            color: #fff;
+            text-transform: uppercase;
+            font-family: 'Courier New';
+        }
+
+        p {
+            color: #aaa;
+            line-height: 1.6;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        /* CARDS */
+        .tool-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .tool-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .tool-card:active {
+            transform: scale(0.98);
+        }
+
+        .tool-card.selected {
+            border: 2px solid var(--neon);
+            background: rgba(0, 255, 65, 0.05);
+        }
+
+        .t-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .t-name {
+            font-weight: bold;
+            color: #fff;
+            font-size: 0.95rem;
+        }
+
+        .t-val {
+            font-size: 0.8rem;
+            color: #888;
+            display: block;
+            margin-top: 2px;
+        }
+
+        .risk-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #000;
+            text-transform: uppercase;
+            min-width: 70px;
+            text-align: center;
+        }
+
+        .card-thumb {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            margin-right: 15px;
+            filter: grayscale(100%);
+            transition: filter 0.2s;
+        }
+
+        .tool-card.selected .card-thumb {
+            filter: grayscale(0%) drop-shadow(0 0 5px var(--neon));
+        }
+
+        /* TUTORIAL */
+        .tutorial-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .step-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            text-align: center;
+            color: #aaa;
+        }
+
+        .cta-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid var(--neon);
+            z-index: 100;
+        }
+
         .btn-launch {
-            background: var(--neon); color: #000; border: none; padding: 15px 40px; font-size: 1.2rem; font-weight: 900; cursor: pointer;
-            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3); width: 100%; max-width: 400px; clip-path: polygon(10% 0, 100% 0, 100% 100%, 90% 100%, 0 100%, 0 0);
+            background: #333;
+            color: #888;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: 900;
+            width: 100%;
+            max-width: 400px;
+            clip-path: polygon(10% 0, 100% 0, 100% 100%, 90% 100%, 0 100%, 0 0);
+            pointer-events: none;
+            transition: all 0.3s;
         }
-        .btn-launch:active { transform: scale(0.95); background: #fff; }
-        
-        .btn-test { background: transparent; border: 1px solid #555; color: #aaa; padding: 8px 15px; font-size: 0.7rem; cursor: pointer; margin-bottom: 10px; }
 
-        /* --- SIMULADOR (HIDDEN) --- */
-        #sim-layer { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 999; }
-        #cam-feed { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.4; filter: grayscale(100%) contrast(1.2); z-index: 0; }
-        
-        .hud-content { position: relative; z-index: 10; height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 15px; }
-        
-        .sim-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--neon); padding-bottom: 10px; background: rgba(0,0,0,0.5); }
-        .clock-time { font-size: 2.5rem; font-weight: bold; line-height: 1; color: #fff; }
-        .clock-label { font-size: 0.6rem; color: var(--neon); letter-spacing: 1px; text-align: right;}
+        .btn-launch.ready {
+            background: var(--neon);
+            color: #000;
+            cursor: pointer;
+            pointer-events: all;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
 
-        .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .data-box { background: rgba(255,255,255,0.05); padding: 10px; border: 1px solid #333; }
-        .data-val { font-size: 1.2rem; font-weight: bold; color: #fff; }
-        .data-lbl { font-size: 0.6rem; color: #888; }
+        /* --- SIMULADOR --- */
+        #sim-layer {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 999;
+        }
 
-        .hp-track { height: 15px; background: #222; border: 1px solid #555; margin-top: 5px; transform: skewX(-15deg); }
-        .hp-fill { height: 100%; width: 100%; background: var(--neon); transition: width 0.1s linear; }
+        /* CÂMERA (AR LAYER) - Inicialmente invisível */
+        #cam-feed {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 0.5s;
+            z-index: 0;
+            filter: grayscale(30%) contrast(1.1);
+        }
 
-        .trigger-zone { display: flex; flex-direction: column; align-items: center; padding-bottom: 30px; }
+        .hud-content {
+            position: relative;
+            z-index: 10;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 15px;
+        }
+
+        /* HEADER COM AR TOGGLE */
+        .sim-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid var(--neon);
+            padding-bottom: 10px;
+        }
+
+        /* AR SWITCH (POKEMON GO STYLE) */
+        .ar-switch-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .ar-label {
+            font-size: 0.6rem;
+            color: #aaa;
+            margin-bottom: 3px;
+            font-weight: bold;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #333;
+            transition: .4s;
+            border-radius: 34px;
+            border: 1px solid #555;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--neon);
+            border-color: var(--neon);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(26px);
+        }
+
+        .clock-time {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #fff;
+            font-family: 'Courier New';
+            line-height: 1;
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .data-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border: 1px solid #333;
+            backdrop-filter: blur(5px);
+        }
+
+        .data-val {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fff;
+            font-family: 'Courier New';
+        }
+
+        .data-lbl {
+            font-size: 0.6rem;
+            color: #aaa;
+        }
+
+        /* PALCO DA MÁQUINA */
+        .machine-stage {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            transition: opacity 0.3s;
+        }
+
+        /* Quando AR está ON, a imagem fica levemente transparente para misturar com o mundo */
+        .machine-stage.ar-active .machine-img {
+            opacity: 0.9;
+            filter: drop-shadow(0 0 20px #000);
+        }
+
+        .machine-img {
+            width: 220px;
+            height: auto;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.1)) grayscale(50%);
+            transition: all 0.2s;
+        }
+
+        .machine-img.active {
+            filter: drop-shadow(0 0 30px var(--neon)) grayscale(0%);
+            transform: scale(1.05);
+        }
+
+        @keyframes rumble-anim {
+            0% {
+                transform: translate(1px, 1px) rotate(0deg);
+            }
+
+            20% {
+                transform: translate(-2px, 0px) rotate(1deg);
+            }
+
+            40% {
+                transform: translate(1px, -1px) rotate(1deg);
+            }
+
+            60% {
+                transform: translate(-2px, 1px) rotate(0deg);
+            }
+
+            80% {
+                transform: translate(-1px, -1px) rotate(1deg);
+            }
+
+            100% {
+                transform: translate(1px, -2px) rotate(-1deg);
+            }
+        }
+
+        .rumble {
+            animation: rumble-anim 0.08s infinite linear;
+        }
+
+        .hp-track {
+            height: 20px;
+            background: #222;
+            border: 1px solid #555;
+            margin-top: 5px;
+            transform: skewX(-15deg);
+            overflow: hidden;
+        }
+
+        .hp-fill {
+            height: 100%;
+            width: 100%;
+            background: var(--neon);
+            transition: width 0.1s linear;
+        }
+
         #trigger-btn {
-            width: 110px; height: 110px; border-radius: 50%; border: 4px solid var(--neon); color: var(--neon); background: rgba(0,20,0,0.6);
-            display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem; text-align: center;
-            box-shadow: 0 0 20px var(--neon); user-select: none;
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            border: 4px solid var(--neon);
+            color: var(--neon);
+            background: rgba(0, 20, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.8rem;
+            text-align: center;
+            box-shadow: 0 0 20px var(--neon);
+            user-select: none;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
         }
-        #trigger-btn.active { background: var(--danger); border-color: var(--danger); color: #000; box-shadow: 0 0 50px var(--danger); transform: scale(0.95); }
+
+        #trigger-btn.active {
+            background: var(--danger);
+            border-color: var(--danger);
+            color: #000;
+            box-shadow: 0 0 60px var(--danger);
+            transform: scale(0.95);
+        }
 
         #fail-screen {
-            position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(20,0,0,0.95); z-index: 20;
-            display: none; flex-direction: column; align-items: center; justify-content: center; border: 5px solid var(--danger);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 10, 0.98);
+            z-index: 20;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 5px solid var(--danger);
         }
-        .fail-stamp { font-size: 3rem; color: var(--danger); border: 4px solid var(--danger); padding: 10px; transform: rotate(-5deg); font-weight: 900; margin-bottom: 20px; text-shadow: 0 0 20px red; }
     </style>
 </head>
+
 <body>
 
     <div id="landing-page">
         <header>
             <div class="logo">HAPTIC<span>SHIELD</span></div>
-            <div class="sub">SISTEMA DE TREINAMENTO VMB | UnB 2025</div>
+            <div style="color:#666; font-size:0.8rem; margin-top:5px;">SISTEMA DIGITAL TWIN | UnB</div>
         </header>
 
         <section>
-            <h2>O Problema Invisível</h2>
-            <p>A vibração ocupacional (VMB) destrói capilares e nervos. Operadores de marteletes frequentemente excedem o limite legal da <span class="highlight">ISO 5349</span> sem perceber.</p>
-            
-            <img src="Fig1_ISO5349_Limites.png" style="width:100%; border: 1px solid #333; border-radius: 8px; margin: 20px 0; min-height: 200px; background: #111;" alt="Gráfico de Limites ISO 5349">
-            
-            <p>Este simulador utiliza a tecnologia háptica do seu smartphone para demonstrar como <strong>19 m/s²</strong> de vibração consomem sua "vida vascular" em minutos.</p>
-        </section>
+            <h2>1. Selecione o Equipamento</h2>
+            <p>Escolha a ferramenta para carregar o modelo de vibração:</p>
 
-        <section>
-            <h2>Configuração Obrigatória</h2>
-            <p class="danger-text">⚠️ ATENÇÃO: Ative estas opções ou o celular NÃO vibrará:</p>
-            
-            <div class="tutorial-grid">
-                <div class="step-card">
-                    <div class="step-num">1</div>
-                    <span class="step-title">Som & Vibração</span>
-                    <span class="step-desc">Nas config. do Android, ative "Vibração do Sistema" e "Ao Tocar".</span>
+            <div class="tool-grid">
+                <div class="tool-card"
+                    onclick="selectTool(19.0, 'MARTELETE ROMPEDOR', 'CRÍTICO', 'martelete.png', this)">
+                    <div style="display:flex; align-items:center;">
+                        <img src="martelete.png" class="card-thumb" alt="Martelete">
+                        <div class="t-info">
+                            <span class="t-name">MARTELETE</span>
+                            <span class="t-val">~19.0 m/s²</span>
+                        </div>
+                    </div>
+                    <div class="risk-badge" style="background:var(--danger)">CRÍTICO</div>
                 </div>
-                <div class="step-card">
-                    <div class="step-num">2</div>
-                    <span class="step-title">Modo Energia</span>
-                    <span class="step-desc">Desligue a "Economia de Bateria". Ela bloqueia vibrações.</span>
+
+                <div class="tool-card" onclick="selectTool(8.5, 'LIXADEIRA ANGULAR', 'ALTO', 'lixadeira.png', this)">
+                    <div style="display:flex; align-items:center;">
+                        <img src="lixadeira.png" class="card-thumb" alt="Lixadeira">
+                        <div class="t-info">
+                            <span class="t-name">LIXADEIRA</span>
+                            <span class="t-val">~8.5 m/s²</span>
+                        </div>
+                    </div>
+                    <div class="risk-badge" style="background:var(--warn)">ALTO</div>
                 </div>
-                <div class="step-card">
-                    <div class="step-num">3</div>
-                    <span class="step-title">Volume</span>
-                    <span class="step-desc">Aumente o volume do celular (o Chrome liga vibração ao som).</span>
+
+                <div class="tool-card" onclick="selectTool(3.5, 'FURADEIRA IMPACTO', 'BAIXO', 'furadeira.png', this)">
+                    <div style="display:flex; align-items:center;">
+                        <img src="furadeira.png" class="card-thumb" alt="Furadeira">
+                        <div class="t-info">
+                            <span class="t-name">FURADEIRA</span>
+                            <span class="t-val">~3.5 m/s²</span>
+                        </div>
+                    </div>
+                    <div class="risk-badge" style="background:var(--neon)">BAIXO</div>
                 </div>
             </div>
 
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn-test" onclick="testVibration()">🛠️ CLIQUE PARA TESTAR VIBRAÇÃO</button>
-                <div id="test-msg" style="font-size: 0.7rem; color: #666; margin-top: 5px; height: 20px;"></div>
+            <img src="Fig1_ISO5349_Limites.png"
+                style="width:100%; border: 1px solid #333; border-radius: 8px; margin: 20px 0; background: #222;"
+                alt="Gráfico ISO 5349">
+        </section>
+
+        <section style="margin-top:30px;">
+            <h2>2. Check-list Obrigatório</h2>
+            <div class="tutorial-grid">
+                <div class="step-card">🔊 Som/Vibração ON</div>
+                <div class="step-card">🔋 Economia OFF</div>
+                <div class="step-card">👀 AR Mode (Opcional)</div>
+            </div>
+            <div style="text-align: center; margin-top: 15px;">
+                <button onclick="testVibration()"
+                    style="background:transparent; border:1px solid #555; color:#aaa; padding:5px 10px; cursor:pointer;">Testar
+                    Motor Tátil</button>
+                <div id="test-msg" style="font-size:0.7rem; color:#666; min-height:15px; margin-top:5px;"></div>
             </div>
         </section>
     </div>
 
     <div class="cta-container" id="cta-layer">
-        <button class="btn-launch" onclick="launchSimulator()">ACESSAR SIMULADOR</button>
-        <p style="font-size: 0.6rem; color: #555; margin-top: 5px;">Ao clicar, permita o uso da Câmera para RA</p>
+        <button id="btn-start" class="btn-launch" onclick="launchSimulator()">SELECIONE UMA FERRAMENTA</button>
     </div>
-
 
     <div id="sim-layer">
         <video id="cam-feed" autoplay playsinline muted></video>
-        
+
         <div class="hud-content">
             <div>
                 <div class="sim-header">
-                    <div style="font-size: 0.8rem; color: #aaa;">TURNO<br>SIMULADO</div>
-                    <div class="clock-box">
+                    <div>
+                        <div style="font-size:0.8rem; font-weight:bold" id="hud-tool">--</div>
+                        <div style="font-size:0.6rem; color:var(--warn)" id="hud-risk">STANDBY</div>
+                    </div>
+
+                    <div class="ar-switch-container">
+                        <div class="ar-label">AR MODE (BETA)</div>
+                        <label class="switch">
+                            <input type="checkbox" id="ar-toggle" onchange="toggleAR()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div style="text-align:right">
                         <div class="clock-time" id="clock">00:00</div>
-                        <div class="clock-label">HORAS : MINUTOS</div>
+                        <div style="font-size:0.6rem; color:#888">TURNO SIMULADO</div>
                     </div>
                 </div>
 
                 <div class="data-grid">
                     <div class="data-box">
                         <div class="data-val" id="val-acc" style="color:var(--warn)">0.0</div>
-                        <div class="data-lbl">VIBRAÇÃO (m/s²)</div>
+                        <div class="data-lbl">A(hv) SIMULADO</div>
                     </div>
                     <div class="data-box">
                         <div class="data-val" id="val-dose">0.00</div>
                         <div class="data-lbl">DOSE A(8)</div>
                     </div>
                 </div>
+            </div>
 
-                <div style="margin-top: 15px;">
+            <div class="machine-stage" id="machine-stage">
+                <img id="machine-visual" class="machine-img" src="" alt="Machine">
+            </div>
+
+            <div>
+                <div style="margin-bottom: 15px;">
                     <div style="display:flex; justify-content:space-between; font-size:0.7rem;">
                         <span>SAÚDE VASCULAR</span>
                         <span id="hp-txt">100%</span>
@@ -171,63 +583,120 @@
                         <div class="hp-fill" id="hp-bar"></div>
                     </div>
                 </div>
-            </div>
 
-            <div class="trigger-zone">
-                <div id="trigger-btn">SEGURE<br>PARA<br>OPERAR</div>
-                <div style="font-size: 0.6rem; color: #666; margin-top: 10px;">ESCALA: 1s = 2min</div>
+                <div style="display: flex; justify-content: center; padding-bottom: 20px;">
+                    <div id="trigger-btn">SEGURE<br>PARA<br>OPERAR</div>
+                </div>
+                <div style="text-align: center; font-size: 0.6rem; color: #aaa; margin-bottom: 10px;">ESCALA TEMPORAL:
+                    1s = 2min</div>
             </div>
         </div>
 
         <div id="fail-screen">
-            <div class="fail-stamp">FALHA</div>
-            <h2 style="color: #fff;">LIMITE EXCEDIDO</h2>
-            <p style="color: #aaa;">NECROSE TECIDUAL IMINENTE</p>
-            
-            <div style="background: #222; padding: 20px; margin: 20px; border: 1px solid #444; text-align: left; width: 80%;">
-                <p>⏱️ Tempo Seguro: <strong style="color: #fff">33 min</strong></p>
-                <p>💀 Tempo Operado: <strong style="color: var(--danger)" id="final-time">00:00</strong></p>
-                <p>📈 Dose Final: <strong style="color: var(--danger)" id="final-dose">5.00</strong></p>
+            <div
+                style="font-size: 3rem; color: var(--danger); border: 4px solid var(--danger); padding: 10px; transform: rotate(-5deg); font-weight: 900; margin-bottom: 20px;">
+                FALHA</div>
+            <h2 style="color: #fff;">ISO 5349 VIOLADA</h2>
+
+            <div
+                style="background: #222; padding: 20px; width: 80%; margin-bottom: 20px; border-left: 4px solid var(--danger);">
+                <p style="margin:5px 0; color:#aaa;">Equipamento: <strong style="color:#fff" id="res-tool">XXX</strong>
+                </p>
+                <p style="margin:5px 0; color:#aaa;">Tempo Limite: <strong style="color:#fff"
+                        id="res-time">00:00</strong></p>
+                <p style="margin:5px 0; color:#aaa;">Dose Final: <strong style="color:var(--danger)"
+                        id="res-dose">5.00</strong></p>
             </div>
 
-            <button class="btn-launch" style="background: #333; color: #fff; border: 1px solid #fff;" onclick="resetSim()">REINICIAR</button>
-            <button class="btn-test" style="margin-top: 15px; border: none;" onclick="location.reload()">VOLTAR AO INÍCIO</button>
+            <button onclick="location.reload()"
+                style="background: var(--neon); color: #000; border: none; padding: 15px 30px; font-weight: bold; cursor: pointer;">TROCAR
+                FERRAMENTA</button>
+            <button onclick="resetSim()"
+                style="background: transparent; border: 1px solid #fff; color: #fff; padding: 10px 20px; margin-top: 10px; cursor: pointer;">TENTAR
+                NOVAMENTE</button>
         </div>
     </div>
 
     <script>
-        // --- CORREÇÃO DO BUG JS ---
+        // --- ESTADO ---
+        let selectedAcc = 0;
+        let selectedName = "";
+        let stream = null; // Stream da câmera
+
+        // --- SELEÇÃO DE FERRAMENTA ---
+        function selectTool(acc, name, risk, imgSrc, el) {
+            selectedAcc = acc;
+            selectedName = name;
+
+            document.querySelectorAll('.tool-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+
+            const btn = document.getElementById('btn-start');
+            btn.innerText = "INICIAR SIMULAÇÃO";
+            btn.classList.add('ready');
+
+            document.getElementById('hud-tool').innerText = name;
+            document.getElementById('hud-risk').innerText = risk;
+            document.getElementById('machine-visual').src = imgSrc;
+        }
+
         function testVibration() {
             const msg = document.getElementById('test-msg');
             if (navigator.vibrate) {
                 navigator.vibrate(200);
-                msg.innerText = "Comando enviado! Se tremeu, está pronto.";
-                msg.style.color = "#00ff41"; // Corrigido aqui: string hexadecimal válida
+                msg.innerText = "Vibração OK.";
+                msg.style.color = "#00ff41";
             } else {
-                msg.innerText = "Navegador sem suporte a vibração (iOS?).";
+                msg.innerText = "Sem suporte a vibração (iOS?).";
                 msg.style.color = "orange";
             }
         }
 
-        async function launchSimulator() {
+        function launchSimulator() {
+            if (selectedAcc === 0) return;
             document.getElementById('landing-page').style.display = 'none';
             document.getElementById('cta-layer').style.display = 'none';
             document.getElementById('sim-layer').style.display = 'block';
+        }
 
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-                document.getElementById('cam-feed').srcObject = stream;
-            } catch (e) {
-                console.log("Câmera negada. Usando fundo preto.");
-                document.getElementById('cam-feed').style.display = 'none';
+        // --- AR / CÂMERA LOGIC ---
+        async function toggleAR() {
+            const toggle = document.getElementById('ar-toggle');
+            const video = document.getElementById('cam-feed');
+            const simLayer = document.getElementById('sim-layer');
+            const machineStage = document.getElementById('machine-stage');
+
+            if (toggle.checked) {
+                // TENTAR ATIVAR
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                    video.srcObject = stream;
+                    video.style.opacity = 1;
+                    simLayer.style.background = "transparent"; // Fundo transparente
+                    machineStage.classList.add('ar-active');
+                    alert("⚠️ MODO AR (BETA) ATIVADO\nCuidado ao se movimentar com o celular.");
+                } catch (e) {
+                    console.error(e);
+                    alert("Erro ao acessar câmera. Verifique permissões.");
+                    toggle.checked = false; // Volta o botão
+                }
+            } else {
+                // DESATIVAR
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    stream = null;
+                }
+                video.srcObject = null;
+                video.style.opacity = 0;
+                simLayer.style.background = "#000"; // Volta o fundo preto
+                machineStage.classList.remove('ar-active');
             }
         }
 
-        // --- LÓGICA FÍSICA ---
-        const TOOL_ACC = 19.0;
+        // --- MOTOR DE SIMULAÇÃO ---
         const LIMIT = 5.0;
         const TIME_SCALE = 120; // 1s = 2min
-        
+
         let simSeconds = 0;
         let dose = 0;
         let isRunning = false;
@@ -240,65 +709,80 @@
             hpBar: document.getElementById('hp-bar'),
             hpTxt: document.getElementById('hp-txt'),
             btn: document.getElementById('trigger-btn'),
+            visual: document.getElementById('machine-visual'),
             fail: document.getElementById('fail-screen')
         };
 
         function startTool(e) {
-            if(e) e.preventDefault();
-            if(dose >= LIMIT) return;
+            if (e) e.preventDefault();
+            if (dose >= LIMIT) return;
 
             isRunning = true;
             els.btn.classList.add('active');
-            els.btn.innerHTML = "VIBRAÇÃO<br>ATIVA";
+            els.btn.innerHTML = "OPERANDO...";
 
-            if(navigator.vibrate) {
-                navigator.vibrate([400, 30, 400, 30]);
+            els.visual.classList.add('rumble');
+            els.visual.classList.add('active');
+
+            let pattern = [400, 30];
+            if (selectedAcc < 5) pattern = [100, 100];
+
+            if (navigator.vibrate) {
+                navigator.vibrate(pattern);
                 vibeTimer = setInterval(() => {
-                    if(isRunning) navigator.vibrate([400, 30]);
-                }, 430);
+                    if (isRunning) navigator.vibrate(pattern);
+                }, pattern[0] + pattern[1]);
             }
 
             loopTimer = setInterval(() => {
                 simSeconds += (0.1 * TIME_SCALE);
                 let t_hours = simSeconds / 3600;
-                dose = TOOL_ACC * Math.sqrt(t_hours / 8);
+                dose = selectedAcc * Math.sqrt(t_hours / 8);
 
                 let h = Math.floor(simSeconds / 3600);
                 let m = Math.floor((simSeconds % 3600) / 60);
-                els.clock.innerText = `${h<10?'0'+h:h}:${m<10?'0'+m:m}`;
+                els.clock.innerText = `${h < 10 ? '0' + h : h}:${m < 10 ? '0' + m : m}`;
 
-                els.acc.innerText = (TOOL_ACC + (Math.random()-0.5)).toFixed(1);
+                let noise = (Math.random() * (selectedAcc * 0.1)) - (selectedAcc * 0.05);
+                els.acc.innerText = (selectedAcc + noise).toFixed(1);
                 els.dose.innerText = dose.toFixed(2);
 
-                let hp = Math.max(0, 100 - (dose/LIMIT)*100);
+                let hp = Math.max(0, 100 - (dose / LIMIT) * 100);
                 els.hpBar.style.width = hp + "%";
                 els.hpTxt.innerText = Math.floor(hp) + "%";
 
-                if(hp < 30) els.hpBar.style.background = "#ff3333"; // Var CSS hardcoded para JS seguro
+                if (hp < 30) els.hpBar.style.background = "#ff3333";
                 else els.hpBar.style.background = "#00ff41";
 
-                if(dose >= LIMIT) failState();
+                if (dose >= LIMIT) failState();
 
             }, 100);
         }
 
         function stopTool(e) {
-            if(e) e.preventDefault();
+            if (e) e.preventDefault();
             isRunning = false;
+
             els.btn.classList.remove('active');
             els.btn.innerHTML = "SEGURE<br>PARA<br>OPERAR";
             els.acc.innerText = "0.0";
 
+            els.visual.classList.remove('rumble');
+            els.visual.classList.remove('active');
+
             clearInterval(loopTimer);
             clearInterval(vibeTimer);
-            if(navigator.vibrate) navigator.vibrate(0);
+            if (navigator.vibrate) navigator.vibrate(0);
         }
 
         function failState() {
             stopTool();
-            if(navigator.vibrate) navigator.vibrate(1000);
-            document.getElementById('final-time').innerText = els.clock.innerText;
-            document.getElementById('final-dose').innerText = dose.toFixed(2);
+            if (navigator.vibrate) navigator.vibrate(1000);
+
+            document.getElementById('res-tool').innerText = selectedName;
+            document.getElementById('res-time').innerText = els.clock.innerText;
+            document.getElementById('res-dose').innerText = dose.toFixed(2);
+
             els.fail.style.display = 'flex';
         }
 
@@ -316,8 +800,9 @@
         b.addEventListener('mousedown', startTool);
         b.addEventListener('mouseup', stopTool);
         b.addEventListener('mouseleave', stopTool);
-        b.addEventListener('touchstart', startTool, {passive: false});
-        b.addEventListener('touchend', stopTool, {passive: false});
+        b.addEventListener('touchstart', startTool, { passive: false });
+        b.addEventListener('touchend', stopTool, { passive: false });
     </script>
 </body>
+
 </html>
